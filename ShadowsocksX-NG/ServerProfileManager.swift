@@ -46,6 +46,7 @@ class ServerProfileManager: NSObject {
         activeProfileId = id
         let defaults = UserDefaults.standard
         defaults.set(id, forKey: "ActiveServerProfileId")
+        defaults.synchronize()
     }
     
     func getActiveProfileId() -> String {
@@ -80,6 +81,7 @@ class ServerProfileManager: NSObject {
             defaults.removeObject(forKey: "ActiveServerProfileId")
             removeSSLocalConfFile()
         }
+        defaults.synchronize()
     }
     
     func getActiveProfile() -> ServerProfile? {
@@ -153,6 +155,9 @@ class ServerProfileManager: NSObject {
                         }
                         if (item["obfs"] != nil) {
                             profile.ssrObfs = item["obfs"] as! String
+                            if profile.ssrObfs == "tls1.2_ticket_fastauth" {
+                                profile.ssrObfs = "tls1.2_ticket_auth"
+                            }
                             profile.ssrProtocol = item["protocol"] as! String
                             if (item["obfsparam"] != nil){
                                 profile.ssrObfsParam = item["obfsparam"] as! String

@@ -95,7 +95,7 @@ class PreferencesWindowController: NSWindowController
             "http_simple",
             "tls_simple",
             "http_post",
-            "tls1.2_ticket_auth",
+            "tls1.2_ticket_auth"
             ])
         profilesTableView.reloadData()
         updateProfileBoxVisible()
@@ -149,6 +149,7 @@ class PreferencesWindowController: NSWindowController
         updateProfileBoxVisible()
         if profileMgr.profiles.count == 0 {
             defaults.set(true, forKey: "ShadowsocksOn")
+            defaults.synchronize()
             (NSApplication.shared.delegate as! AppDelegate).toggleRunning((NSApplication.shared.delegate as! AppDelegate).toggleRunningMenuItem)
         }
     }
