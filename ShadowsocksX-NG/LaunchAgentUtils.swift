@@ -17,8 +17,11 @@ let LAUNCH_AGENT_CONF_PRIVOXY_NAME = "com.qiuyuzhou.shadowsocksX-NG.http.plist"
 
 
 func getFileSHA1Sum(_ filepath: String) -> String {
-    if let data = try? Data(contentsOf: URL(fileURLWithPath: filepath)) {
-        return data.sha1()
+    let fileMgr = FileManager.default
+    if fileMgr.fileExists(atPath: filepath) {
+        if let data = try? Data(contentsOf: URL(fileURLWithPath: filepath)) {
+            return data.sha1()
+        }
     }
     return ""
 }
@@ -48,7 +51,7 @@ func generateSSLocalLauchAgentPlist() -> Bool {
     let enableVerboseMode = defaults.bool(forKey: "LocalSocks5.EnableVerboseMode")
     let enabelWhiteListMode = defaults.string(forKey: "ShadowsocksRunningMode")
     
-    var arguments = [sslocalPath, "-c", "ss-local-config.json"]
+    var arguments = [sslocalPath, "-c", "ss-local-config.json", "--fast-open"]
     if enableUdpRelay {
         arguments.append("-u")
     }
@@ -135,10 +138,28 @@ func InstallSSLocal() {
     }
 }
 
+func RemoveSSLocal() {
+    let bundle = Bundle.main
+    let installerPath = bundle.path(forResource: "remove_ss_local.sh", ofType: nil)
+    let task = Process.launchedProcess(launchPath: installerPath!, arguments: [""])
+    task.waitUntilExit()
+    if task.terminationStatus == 0 {
+        NSLog("Remove ss-local succeeded.")
+    } else {
+        NSLog("Remove ss-local failed.")
+    }
+}
+
 func writeSSLocalConfFile(_ conf:[String:AnyObject]) -> Bool {
     do {
         let filepath = NSHomeDirectory() + APP_SUPPORT_DIR + "ss-local-config.json"
-        let data: Data = try JSONSerialization.data(withJSONObject: conf, options: .prettyPrinted)
+        var data: Data = try JSONSerialization.data(withJSONObject: conf, options: .prettyPrinted)
+        
+        // https://github.com/shadowsocks/ShadowsocksX-NG/issues/1104
+        // This is NSJSONSerialization.dataWithJSONObject that likes to insert additional backslashes.
+        // Escaped forward slashes is also valid json.
+        let s = String(data:data, encoding: .utf8)!
+        data = s.replacingOccurrences(of: "\\/", with: "/").data(using: .utf8)!
         
         let oldSum = getFileSHA1Sum(filepath)
         try data.write(to: URL(fileURLWithPath: filepath), options: .atomic)
@@ -272,6 +293,18 @@ func InstallPrivoxy() {
         } else {
             NSLog("Install privoxy failed.")
         }
+    }
+}
+
+func RemovePrivoxy() {
+    let bundle = Bundle.main
+    let installerPath = bundle.path(forResource: "remove_privoxy.sh", ofType: nil)
+    let task = Process.launchedProcess(launchPath: installerPath!, arguments: [""])
+    task.waitUntilExit()
+    if task.terminationStatus == 0 {
+        NSLog("Remove privoxy succeeded.")
+    } else {
+        NSLog("Remove privoxy failed.")
     }
 }
 
