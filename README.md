@@ -9,15 +9,37 @@
 
 - 请勿在本项目的Issues里进行任何购买梯子或者搭建梯子的讨论
 
-- 本项目所提供编译好的App程序不保证一定可用（特别是macOS 10.15），请各位技术大牛自行下载编译运行，提高使用门槛（在Xcode11.3.1上可以直接编译运行）
+- 本项目所提供编译好的App程序不保证一定可用（特别是macOS 10.15），请各位技术大牛自行下载编译运行，提高使用门槛（在Xcode11.4上可以直接编译运行）
+
+- 如果你需要使用kcptun，那么你可以看一下[这个项目](https://github.com/paradiseduo/Kcptun)
+
+- 如果你需要使用trojan，那么你可以看一下[这个项目](https://github.com/paradiseduo/Trojan)
+
+## 软件删除方法
+首先从应用程序中将.app文件放到废纸篓（随便什么方式）
+然后打开命令行，依次输入：
+```
+rm -rf /Library/Application\ Support/ShadowsocksX-NG-R8
+rm -rf ~/Library/Application\ Support/ShadowsocksX-NG-R8
+rm -rf ~/Library/LaunchAgents/com.qiuyuzhou.shadowsocksX-NG.http.plist
+rm -rf ~/Library/LaunchAgents/com.qiuyuzhou.shadowsocksX-NG.local.plist
+rm -rf ~/.ShadowsocksX-NG
+rm -rf ~/Library/Preferences/com.qiuyuzhou.ShadowsocksX-NG.plist
+rm -rf ~/Library/Caches/com.qiuyuzhou.ShadowsocksX-NG
+```
+如果提示权限不足，请sudo后执行
+
 
 # ShadowsocksX-NG-R
 
-Current version is 1.5.4
+Current version is 1.5.9
 
-Continuesly release under 1.5.4
+Continuesly release under 1.5.9
 
 [![Build Status](https://travis-ci.org/shadowsocksr/ShadowsocksX-NG.svg?branches=develop)](https://travis-ci.org/shadowsocksr/ShadowsocksX-NG)
+[![Swift](https://img.shields.io/badge/swift-5.2-orange.svg)](https://www.python.org/downloads/)
+[![platform](https://img.shields.io/badge/platform-macOS-green.svg)](https://github.com/MobSF/Mobile-Security-Framework-MobSF/)
+[![License](https://img.shields.io/:license-GPL--3.0--only-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 
 Next Generation of [ShadowsocksX](https://github.com/shadowsocks/shadowsocks-iOS) with SSR support.
 
@@ -51,7 +73,7 @@ Then I rewrite the GUI code by swift.
 
 ### Building
 
-- Xcode 11.1+
+- Xcode 11.4+
 - cocoapod 1.8.4+
 
 ## Fetures

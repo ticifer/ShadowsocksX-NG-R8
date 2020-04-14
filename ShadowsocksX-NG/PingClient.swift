@@ -22,12 +22,11 @@ fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
 
 public typealias SimplePingClientCallback = (String?)->()
 
+var isTesting:Bool = false
 var neverSpeedTestBefore:Bool = true
 
 class PingServers:NSObject{
     static let instance = PingServers()
-    
-    let SerMgr = ServerProfileManager.instance
     
     func runCommand(cmd : String, args : String...) -> (output: [String], error: [String], exitCode: Int32) {
         
@@ -76,6 +75,7 @@ class PingServers:NSObject{
     }
     
     func ping(){
+        let SerMgr = ServerProfileManager.instance
         if SerMgr.profiles.count <= 0 {
             return
         }
@@ -87,45 +87,55 @@ class PingServers:NSObject{
         for i in 0..<SerMgr.profiles.count {
             group.enter()
             queue.async {
-                if let outputString = self.runCommand(cmd: "/sbin/ping", args: "-c","5","-t","2",self.SerMgr.profiles[i].serverHost).output.last {
+                if let outputString = self.runCommand(cmd: "/sbin/ping", args: "-c","5","-t","2",SerMgr.profiles[i].serverHost).output.last {
                     if let latency = self.getlatencyFromString(result: outputString) {
-                        self.SerMgr.profiles[i].latency = String(latency)
+                        SerMgr.profiles[i].latency = String(latency)
                     }
                 }
                 group.leave()
             }
         }
         group.notify(queue: DispatchQueue.main) {
-            self.sortSpeed()
-        }
-    }
-    
-    func sortSpeed() {
-        var fastID = 0
-        var fastTime = Double.infinity
-        
-        for k in 0..<SerMgr.profiles.count {
-            if let late = SerMgr.profiles[k].latency{
-                if let latency = Double(late), latency < fastTime {
-                    fastTime = latency
-                    fastID = k
+            var fastID = 0
+            var fastTime = Double.infinity
+            
+            for k in 0..<SerMgr.profiles.count {
+                if let late = SerMgr.profiles[k].latency{
+                    if let latency = Double(late), latency < fastTime {
+                        fastTime = latency
+                        fastID = k
+                    }
+                }
+            }
+            
+            if fastTime != Double.infinity {
+                let notice = NSUserNotification()
+                notice.title = "ICMP测试完成！最快\(SerMgr.profiles[fastID].latency!)ms"
+                notice.subtitle = "最快的是\(SerMgr.profiles[fastID].serverHost) \(SerMgr.profiles[fastID].remark)"
+                
+                NSUserNotificationCenter.default.deliver(notice)
+                
+                UserDefaults.standard.setValue("\(SerMgr.profiles[fastID].latency!)", forKey: "FastestNode")
+                UserDefaults.standard.synchronize()
+                
+                DispatchQueue.main.async {
+                    isTesting = false
+                    (NSApplication.shared.delegate as! AppDelegate).updateServersMenu()
+                    (NSApplication.shared.delegate as! AppDelegate).updateRunningModeMenu()
                 }
             }
         }
-        
-        if fastTime != Double.infinity {
-            let notice = NSUserNotification()
-            notice.title = "Ping测试完成！最快\(SerMgr.profiles[fastID].latency!)ms"
-            notice.subtitle = "最快的是\(SerMgr.profiles[fastID].serverHost) \(SerMgr.profiles[fastID].remark)"
-            
-            NSUserNotificationCenter.default.deliver(notice)
-            
-            UserDefaults.standard.setValue("\(SerMgr.profiles[fastID].latency!)", forKey: "FastestNode")
-            UserDefaults.standard.synchronize()
-            
-            DispatchQueue.main.async {
-                (NSApplication.shared.delegate as! AppDelegate).updateServersMenu()
-                (NSApplication.shared.delegate as! AppDelegate).updateRunningModeMenu()
+    }
+}
+
+class ConnectTestigManager {
+    static func start() {
+        if !isTesting {
+            isTesting = true
+            if UserDefaults.standard.bool(forKey: "TCP") {
+                Tcping.instance.ping()
+            } else {
+                PingServers.instance.ping()
             }
         }
     }
